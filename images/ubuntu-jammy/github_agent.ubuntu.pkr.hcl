@@ -83,6 +83,12 @@ variable "custom_shell_commands" {
   default     = []
 }
 
+variable "runner_username" {
+  description = "Name of the default user account"
+  type        = string
+  default     = "runner"
+}
+
 variable "temporary_security_group_source_public_ip" {
   description = "When enabled, use public IP of the host (obtained from https://checkip.amazonaws.com) as CIDR block to be authorized access to the instance, when packer is creating a temporary security group. Note: If you specify `security_group_id` then this input is ignored."
   type        = bool
@@ -99,6 +105,12 @@ data "http" github_runner_release_json {
 
 locals {
   runner_version = coalesce(var.runner_version, trimprefix(jsondecode(data.http.github_runner_release_json.body).tag_name, "v"))
+  user_data      = <<-EOT
+  #cloud-config
+  system_info:
+  default_user:
+      name: ${var.runner_username}
+  EOT
 }
 
 source "amazon-ebs" "githubrunner" {
@@ -120,7 +132,7 @@ source "amazon-ebs" "githubrunner" {
     most_recent = true
     owners      = ["099720109477"]
   }
-  ssh_username = "ubuntu"
+  ssh_username = var.runner_username
   tags = merge(
     var.global_tags,
     var.ami_tags,
@@ -140,6 +152,7 @@ source "amazon-ebs" "githubrunner" {
     volume_type           = "gp3"
     delete_on_termination = "${var.ebs_delete_on_termination}"
   }
+  user_data = local.user_data
 }
 
 build {
@@ -147,6 +160,15 @@ build {
   sources = [
     "source.amazon-ebs.githubrunner"
   ]
+  provisioner "file" {
+    content     = local.user_data
+    destination = "/tmp/defaults.cfg"
+  }
+  provisioner "shell" {
+    inline = [
+      "sudo mv /tmp/defaults.cfg /etc/cloud/cloud.cfg.d/defaults.cfg"
+    ]
+  }
   provisioner "shell" {
     environment_vars = [
       "DEBIAN_FRONTEND=noninteractive"
@@ -161,7 +183,7 @@ build {
       "sudo apt-get -y install docker-ce docker-ce-cli containerd.io jq git unzip",
       "sudo systemctl enable containerd.service",
       "sudo service docker start",
-      "sudo usermod -a -G docker ubuntu",
+      "sudo usermod -a -G docker ${var.runner_username}",
       "sudo curl -f https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb -o amazon-cloudwatch-agent.deb",
       "sudo dpkg -i amazon-cloudwatch-agent.deb",
       "sudo systemctl restart amazon-cloudwatch-agent",
@@ -188,7 +210,7 @@ build {
     ]
     inline = [
       "sudo chmod +x /tmp/install-runner.sh",
-      "echo ubuntu | tee -a /tmp/install-user.txt",
+      "echo ${var.runner_username} | tee -a /tmp/install-user.txt",
       "sudo RUNNER_ARCHITECTURE=x64 RUNNER_TARBALL_URL=$RUNNER_TARBALL_URL /tmp/install-runner.sh",
       "echo ImageOS=ubuntu22 | tee -a /opt/actions-runner/.env"
     ]
