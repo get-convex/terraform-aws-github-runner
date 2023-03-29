@@ -108,8 +108,8 @@ locals {
   user_data      = <<-EOT
   #cloud-config
   system_info:
-  default_user:
-      name: ${var.runner_username}
+    default_user:
+        name: ${var.runner_username}
   EOT
 }
 
@@ -152,6 +152,7 @@ source "amazon-ebs" "githubrunner" {
     volume_type           = "gp3"
     delete_on_termination = "${var.ebs_delete_on_termination}"
   }
+
   user_data = local.user_data
 }
 
@@ -175,15 +176,18 @@ build {
     ]
     inline = concat([
       "sudo cloud-init status --wait",
+      "printf 'APT::Get::Assume-Yes \"true\";\n' | sudo tee /etc/apt/apt.conf.d/90forceyes > /dev/null",
       "sudo apt-get -y update",
       "sudo apt-get -y install ca-certificates curl gnupg lsb-release",
       "sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg",
       "echo deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
+      "sudo add-apt-repository -y ppa:saiarcot895/chromium-beta",
       "sudo apt-get -y update",
-      "sudo apt-get -y install docker-ce docker-ce-cli containerd.io jq git unzip",
+      "sudo apt-get -y install docker-ce docker-ce-cli containerd.io jq git unzip build-essential python3-dev python3-pip python3-setuptools postgresql-client autoconf automake binutils bzip2 coreutils dnsutils gnupg2 haveged iproute2 imagemagick iputils-ping jq libc++-dev libcurl4 libgbm-dev libgconf-2-4 libgsl-dev libgtk-3-0 libmagic-dev libsqlite3-dev libtool libssl-dev lz4 net-tools netcat p7zip-full p7zip-rar parallel rsync shellcheck sqlite3 unzip xz-utils zip chromium-browser libsodium-dev pkg-config",
       "sudo systemctl enable containerd.service",
       "sudo service docker start",
       "sudo usermod -a -G docker ${var.runner_username}",
+      "sudo docker pull postgres:13",
       "sudo curl -f https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb -o amazon-cloudwatch-agent.deb",
       "sudo dpkg -i amazon-cloudwatch-agent.deb",
       "sudo systemctl restart amazon-cloudwatch-agent",
