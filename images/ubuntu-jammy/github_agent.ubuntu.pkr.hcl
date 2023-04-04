@@ -176,8 +176,20 @@ build {
     ]
     inline = concat([
       "sudo cloud-init status --wait",
+      "printf 'APT::Acquire::Retries \"10\";\n' | sudo tee /etc/apt/apt.conf.d/80retries > /dev/null",
+      "printf 'APT::Get::Assume-Yes \"true\";\n' | sudo tee /etc/apt/apt.conf.d/90forceyes > /dev/null",
+      "echo 'DEBIAN_FRONTEND=noninteractive' | sudo tee /etc/environment > /dev/null",
+      # Disable apt-daily upgrade services
+      "sudo systemctl stop apt-daily.timer",
+      "sudo systemctl disable apt-daily.timer",
+      "sudo systemctl disable apt-daily.service",
+      "sudo systemctl stop apt-daily-upgrade.timer",
+      "sudo systemctl disable apt-daily-upgrade.timer",
+      "sudo systemctl disable apt-daily-upgrade.service",
       "printf 'APT::Get::Assume-Yes \"true\";\n' | sudo tee /etc/apt/apt.conf.d/90forceyes > /dev/null",
       "sudo apt-get -y update",
+      # Make sure unattended upgrades are disabled.
+      "sudo apt-get purge unattended-upgrades",
       "sudo apt-get -y install ca-certificates curl gnupg lsb-release",
       "sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg",
       "echo deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
