@@ -234,5 +234,8 @@ build {
       "sudo chmod +x /var/lib/cloud/scripts/per-boot/start-runner.sh",
     ]
   }
-
+  post-processor "manifest" {
+    output     = "manifest.json"
+    strip_path = true
+  }
 }
