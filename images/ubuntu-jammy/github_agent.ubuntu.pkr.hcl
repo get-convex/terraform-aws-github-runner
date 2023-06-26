@@ -246,6 +246,7 @@ build {
     inline = [
       "sudo mv /tmp/start-runner.sh /var/lib/cloud/scripts/per-boot/start-runner.sh",
       "sudo chmod +x /var/lib/cloud/scripts/per-boot/start-runner.sh",
+      "curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2023-03-01 --component rustfmt --component clippy"
     ]
   }
 
