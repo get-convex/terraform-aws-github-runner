@@ -50,7 +50,7 @@ variable "iam_instance_profile" {
 
 variable "root_volume_size_gb" {
   type    = number
-  default = 8
+  default = 25
 }
 
 variable "ebs_delete_on_termination" {
