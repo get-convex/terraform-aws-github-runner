@@ -247,9 +247,10 @@ variable "userdata_post_install" {
 variable "idle_config" {
   description = "List of time periods, defined as a cron expression, to keep a minimum amount of runners active instead of scaling down to 0. By defining this list you can ensure that in time periods that match the cron expression within 5 seconds a runner is kept idle."
   type = list(object({
-    cron      = string
-    timeZone  = string
-    idleCount = number
+    cron             = string
+    timeZone         = string
+    idleCount        = number
+    evictionStrategy = optional(string, "oldest_first")
   }))
   default = []
 }
@@ -792,4 +793,10 @@ variable "runner_credit_specification" {
     condition     = var.runner_credit_specification == null ? true : contains(["standard", "unlimited"], var.runner_credit_specification)
     error_message = "Valid values for runner_credit_specification are (null, \"standard\", \"unlimited\")."
   }
+}
+
+variable "enable_jit_config" {
+  description = "Overwrite the default behavior for JIT configuration. By default JIT configuration is enabled for ephemeral runners and disabled for non-ephemeral runners. In case of GHES check first if the JIT config API is avaialbe. In case you upgradeing from 3.x to 4.x you can set `enable_jit_config` to `false` to avoid a breaking change when having your own AMI."
+  type        = bool
+  default     = null
 }

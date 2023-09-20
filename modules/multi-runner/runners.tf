@@ -35,6 +35,7 @@ module "runners" {
   github_app_parameters                = local.github_app_parameters
   enable_organization_runners          = each.value.runner_config.enable_organization_runners
   enable_ephemeral_runners             = each.value.runner_config.enable_ephemeral_runners
+  enable_jit_config                    = each.value.runner_config.enable_jit_config
   enable_job_queued_check              = each.value.runner_config.enable_job_queued_check
   disable_runner_autoupdate            = each.value.runner_config.disable_runner_autoupdate
   enable_managed_runner_security_group = var.enable_managed_runner_security_group
@@ -68,7 +69,7 @@ module "runners" {
   logging_retention_in_days        = var.logging_retention_in_days
   logging_kms_key_id               = var.logging_kms_key_id
   enable_cloudwatch_agent          = each.value.runner_config.enable_cloudwatch_agent
-  cloudwatch_config                = var.cloudwatch_config
+  cloudwatch_config                = try(coalesce(each.value.runner_config.cloudwatch_config, var.cloudwatch_config), null)
   runner_log_files                 = each.value.runner_config.runner_log_files
   runner_group_name                = each.value.runner_config.runner_group_name
   runner_name_prefix               = each.value.runner_config.runner_name_prefix
