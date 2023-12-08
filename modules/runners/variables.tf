@@ -29,17 +29,6 @@ variable "tags" {
   default     = {}
 }
 
-variable "environment" {
-  description = "A name that identifies the environment, used as prefix and for tagging."
-  type        = string
-  default     = null
-
-  validation {
-    condition     = var.environment == null
-    error_message = "The \"environment\" variable is no longer used. To migrate, set the \"prefix\" variable to the original value of \"environment\" and optionally, add \"Environment\" to the \"tags\" variable map with the same value."
-  }
-}
-
 variable "prefix" {
   description = "The prefix used for naming resources"
   type        = string
@@ -639,4 +628,10 @@ variable "ssm_housekeeper" {
     })
   })
   default = { config = {} }
+}
+
+variable "enable_on_demand_failover_for_errors" {
+  description = "Enable on-demand failover. For example to fall back to on demand when no spot capacity is available the variable can be set to `InsufficientInstanceCapacity`. When not defined the default behavior is to retry later."
+  type        = list(string)
+  default     = []
 }

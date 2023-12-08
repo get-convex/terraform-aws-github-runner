@@ -47,6 +47,7 @@ variable "multi_runner_config" {
       ebs_optimized                           = optional(bool, false)
       enable_ephemeral_runners                = optional(bool, false)
       enable_job_queued_check                 = optional(bool, null)
+      enable_on_demand_failover_for_errors    = optional(list(string), [])
       enable_organization_runners             = optional(bool, false)
       enable_runner_binaries_syncer           = optional(bool, true)
       enable_ssm_on_runners                   = optional(bool, false)
@@ -90,25 +91,17 @@ variable "multi_runner_config" {
         log_stream_name  = string
       })), null)
       block_device_mappings = optional(list(object({
-        delete_on_termination = bool
-        device_name           = string
-        encrypted             = bool
-        iops                  = number
-        kms_key_id            = string
-        snapshot_id           = string
-        throughput            = number
+        delete_on_termination = optional(bool, true)
+        device_name           = optional(string, "/dev/xvda")
+        encrypted             = optional(bool, true)
+        iops                  = optional(number)
+        kms_key_id            = optional(string)
+        snapshot_id           = optional(string)
+        throughput            = optional(number)
         volume_size           = number
-        volume_type           = string
+        volume_type           = optional(string, "gp3")
         })), [{
-        delete_on_termination = true
-        device_name           = "/dev/xvda"
-        encrypted             = true
-        iops                  = null
-        kms_key_id            = null
-        snapshot_id           = null
-        throughput            = null
-        volume_size           = 30
-        volume_type           = "gp3"
+        volume_size = 30
       }])
       pool_config = optional(list(object({
         schedule_expression = string
@@ -145,6 +138,7 @@ variable "multi_runner_config" {
         ebs_optimized: "The EC2 EBS optimized configuration."
         enable_ephemeral_runners: "Enable ephemeral runners, runners will only be used once."
         enable_job_queued_check: "Enables JIT configuration for creating runners instead of registration token based registraton. JIT configuration will only be applied for ephemeral runners. By default JIT confiugration is enabled for ephemeral runners an can be disabled via this override. When running on GHES without support for JIT configuration this variable should be set to true for ephemeral runners."
+        enable_runner_on_demand_failover_for_errors "Enable on-demand failover. For example to fall back to on demand when no spot capacity is available the variable can be set to `InsufficientInstanceCapacity`. When not defined the default behavior is to retry later."
         enable_organization_runners: "Register runners to organization, instead of repo level"
         enable_runner_binaries_syncer: "Option to disable the lambda to sync GitHub runner distribution, useful when using a pre-build AMI."
         enable_ssm_on_runners: "Enable to allow access the runner instances for debugging purposes via SSM. Note that this adds additional permissions to the runner instances."

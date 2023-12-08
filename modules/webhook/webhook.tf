@@ -6,6 +6,7 @@ locals {
   runner_config_sorted = [for k in sort(keys(local.runner_config)) : local.runner_config[k]]
 }
 
+
 resource "aws_lambda_function" "webhook" {
   s3_bucket         = var.lambda_s3_bucket != null ? var.lambda_s3_bucket : null
   s3_key            = var.webhook_lambda_s3_key != null ? var.webhook_lambda_s3_key : null
@@ -21,7 +22,6 @@ resource "aws_lambda_function" "webhook" {
 
   environment {
     variables = {
-      ENVIRONMENT                              = var.prefix
       LOG_LEVEL                                = var.log_level
       POWERTOOLS_LOGGER_LOG_EVENT              = var.log_level == "debug" ? "true" : "false"
       POWERTOOLS_TRACE_ENABLED                 = var.tracing_config.mode != null ? true : false
