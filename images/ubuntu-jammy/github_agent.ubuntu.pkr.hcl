@@ -199,8 +199,8 @@ build {
       # Needed for vector database compilation
       "sudo apt-get -y install --no-install-recommends libsnappy-dev libgflags-dev llvm-dev libclang-dev clang",
       # Grab libssl1.1.1 as this Ubuntu release comes with 3.0.0 which isn't always compatible.
-      "wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.19_amd64.deb -P /tmp",
-      "sudo dpkg -i /tmp/libssl1.1_1.1.1f-1ubuntu2.19_amd64.deb",
+      "wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.20_amd64.deb -O /tmp/libssl.deb",
+      "sudo dpkg -i /tmp/libssl.deb",
       "sudo systemctl enable containerd.service",
       "sudo service docker start",
       "sudo usermod -a -G docker ${var.runner_username}",
@@ -248,7 +248,7 @@ build {
     inline = [
       "sudo mv /tmp/start-runner.sh /var/lib/cloud/scripts/per-boot/start-runner.sh",
       "sudo chmod +x /var/lib/cloud/scripts/per-boot/start-runner.sh",
-      "curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2023-03-01 --component rustfmt --component clippy"
+      "curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2023-11-01 --component rustfmt --component clippy"
     ]
   }
 
