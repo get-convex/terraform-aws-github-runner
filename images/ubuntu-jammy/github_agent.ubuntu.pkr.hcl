@@ -178,6 +178,7 @@ build {
       "sudo cloud-init status --wait",
       "printf 'APT::Acquire::Retries \"10\";\n' | sudo tee /etc/apt/apt.conf.d/80retries > /dev/null",
       "printf 'APT::Get::Assume-Yes \"true\";\n' | sudo tee /etc/apt/apt.conf.d/90forceyes > /dev/null",
+      "printf 'DPkg::Lock::Timeout \"30\";\n' | sudo tee /etc/apt/apt.conf.d/85timeout > /dev/null",
       "echo 'DEBIAN_FRONTEND=noninteractive' | sudo tee /etc/environment > /dev/null",
       # Disable apt-daily upgrade services
       "sudo systemctl stop apt-daily.timer",
@@ -197,7 +198,7 @@ build {
       "sudo apt-get -y update",
       "sudo apt-get -y install docker-ce docker-ce-cli containerd.io jq git unzip build-essential python3-dev python3-pip python3-setuptools postgresql-client autoconf automake binutils bzip2 coreutils dnsutils gnupg2 haveged iproute2 imagemagick iputils-ping jq libc++-dev libcurl4 libgbm-dev libgconf-2-4 libgsl-dev libgtk-3-0 libmagic-dev libsqlite3-dev libtool libssl-dev lz4 net-tools netcat p7zip-full p7zip-rar parallel rsync shellcheck sqlite3 unzip xz-utils zip chromium-browser libsodium-dev pkg-config",
       # Needed for vector database compilation
-      "sudo apt-get -y install --no-install-recommends libsnappy-dev libgflags-dev llvm-dev libclang-dev clang",
+      "sudo apt-get -y install --no-install-recommends libsnappy-dev libgflags-dev llvm-dev libclang-dev librocksdb-dev clang",
       # Grab libssl1.1.1 as this Ubuntu release comes with 3.0.0 which isn't always compatible.
       "wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.20_amd64.deb -O /tmp/libssl.deb",
       "sudo dpkg -i /tmp/libssl.deb",
