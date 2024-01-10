@@ -173,8 +173,8 @@ set -eou pipefail
 cd /tmp
 git clone --depth 1 --branch v8.9.1 https://github.com/facebook/rocksdb.git
 cd rocksdb
-make -j4 static_lib
-cp librocksdb.a /lib/librocksdb.a
+make -j4 shared_lib
+cp -d librocksdb.so* /lib/
 EOF
   }
   provisioner "shell" {
