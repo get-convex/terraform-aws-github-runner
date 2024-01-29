@@ -18,10 +18,6 @@ The scale up lambda is triggered by events on a SQS queue. Events on this queue 
 
 The scale down lambda is triggered via a CloudWatch event. The event is triggered by a cron expression defined in the variable `scale_down_schedule_expression` (https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html). For scaling down GitHub does not provide a good API yet, therefore we run the scaling down based on this event every x minutes. Each time the lambda is triggered it tries to remove all runners older than x minutes (configurable) managed in this deployment. In case the runner can be removed from GitHub, which means it is not executing a workflow, the lambda will terminate the EC2 instance.
 
-## Usages
-
-Usage examples are available in the root module. By default the root module will assume local zip files containing the lambda distribution are available. See the [download lambda module](../download-lambda/README.md) for more information.
-
 ## Lambda Function
 
 The Lambda function is written in [TypeScript](https://www.typescriptlang.org/) and requires Node 12.x and yarn. Sources are located in [./lambdas/runners]. Two lambda functions share the same sources, there is one entry point for `scaleDown` and another one for `scaleUp`.
@@ -55,13 +51,13 @@ yarn run dist
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.2 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.27 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.2 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.27 |
 
 ## Modules
 
@@ -210,7 +206,7 @@ yarn run dist
 | <a name="input_scale_down_schedule_expression"></a> [scale\_down\_schedule\_expression](#input\_scale\_down\_schedule\_expression) | Scheduler expression to check every x for scale down. | `string` | `"cron(*/5 * * * ? *)"` | no |
 | <a name="input_scale_up_reserved_concurrent_executions"></a> [scale\_up\_reserved\_concurrent\_executions](#input\_scale\_up\_reserved\_concurrent\_executions) | Amount of reserved concurrent executions for the scale-up lambda function. A value of 0 disables lambda from being triggered and -1 removes any concurrency limitations. | `number` | `1` | no |
 | <a name="input_sqs_build_queue"></a> [sqs\_build\_queue](#input\_sqs\_build\_queue) | SQS queue to consume accepted build events. | <pre>object({<br>    arn = string<br>  })</pre> | n/a | yes |
-| <a name="input_ssm_housekeeper"></a> [ssm\_housekeeper](#input\_ssm\_housekeeper) | Configuration for the SSM housekeeper lambda. This lambda deletes token / JIT config from SSM.<br><br>  `schedule_expression`: is used to configure the schedule for the lambda.<br>  `enabled`: enable or disable the lambda trigger via the EventBridge.<br>  `lambda_timeout`: timeout for the lambda in seconds.<br>  `config`: configuration for the lambda function. Token path will be read by default from the module. | <pre>object({<br>    schedule_expression = optional(string, "rate(1 day)")<br>    enabled             = optional(bool, true)<br>    lambda_timeout      = optional(number, 60)<br>    config = object({<br>      tokenPath      = optional(string)<br>      minimumDaysOld = optional(number, 1)<br>      dryRun         = optional(bool, false)<br>    })<br>  })</pre> | <pre>{<br>  "config": {}<br>}</pre> | no |
+| <a name="input_ssm_housekeeper"></a> [ssm\_housekeeper](#input\_ssm\_housekeeper) | Configuration for the SSM housekeeper lambda. This lambda deletes token / JIT config from SSM.<br><br>  `schedule_expression`: is used to configure the schedule for the lambda.<br>  `state`: state of the cloudwatch event rule. Valid values are `DISABLED`, `ENABLED`, and `ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS`.<br>  `lambda_timeout`: timeout for the lambda in seconds.<br>  `config`: configuration for the lambda function. Token path will be read by default from the module. | <pre>object({<br>    schedule_expression = optional(string, "rate(1 day)")<br>    state               = optional(string, "ENABLED")<br>    lambda_timeout      = optional(number, 60)<br>    config = object({<br>      tokenPath      = optional(string)<br>      minimumDaysOld = optional(number, 1)<br>      dryRun         = optional(bool, false)<br>    })<br>  })</pre> | <pre>{<br>  "config": {}<br>}</pre> | no |
 | <a name="input_ssm_paths"></a> [ssm\_paths](#input\_ssm\_paths) | The root path used in SSM to store configuration and secreets. | <pre>object({<br>    root   = string<br>    tokens = string<br>    config = string<br>  })</pre> | n/a | yes |
 | <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | List of subnets in which the action runners will be launched, the subnets needs to be subnets in the `vpc_id`. | `list(string)` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | Map of tags that will be added to created resources. By default resources will be tagged with name. | `map(string)` | `{}` | no |
