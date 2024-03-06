@@ -14,7 +14,7 @@ resource "aws_lambda_function" "ami_housekeeper" {
   handler           = "index.handler"
   runtime           = var.lambda_runtime
   timeout           = var.lambda_timeout
-  memory_size       = 256
+  memory_size       = var.lambda_memory_size
   architectures     = [var.lambda_architecture]
 
   environment {
@@ -103,7 +103,7 @@ resource "aws_cloudwatch_event_rule" "ami_housekeeper" {
   name                = "${var.prefix}-ami-housekeeper-rule"
   schedule_expression = var.lambda_schedule_expression
   tags                = var.tags
-  is_enabled          = true
+  state               = var.state_event_rule_ami_housekeeper
 }
 
 resource "aws_cloudwatch_event_target" "ami_housekeeper" {
