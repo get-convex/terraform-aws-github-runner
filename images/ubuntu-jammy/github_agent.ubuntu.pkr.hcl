@@ -219,6 +219,7 @@ EOF
       "sudo service docker start",
       "sudo usermod -a -G docker ${var.runner_username}",
       "sudo docker pull postgres:13",
+      "sudo docker pull mysql:8.0.33-oracle@sha256:ea68e51ffe9b96fef6076f1218af11301aeaf13c6201e0ec9aaef5791d5ddc5d",
       "sudo curl -f https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb -o amazon-cloudwatch-agent.deb",
       "sudo dpkg -i amazon-cloudwatch-agent.deb",
       "sudo systemctl restart amazon-cloudwatch-agent",
