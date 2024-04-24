@@ -39,7 +39,7 @@ variable "associate_public_ip_address" {
 variable "instance_type" {
   description = "The instance type Packer will use for the builder"
   type        = string
-  default     = "t4g.small"
+  default     = "c6g.xlarge"
 }
 
 variable "iam_instance_profile" {
@@ -50,7 +50,7 @@ variable "iam_instance_profile" {
 
 variable "root_volume_size_gb" {
   type    = number
-  default = 8
+  default = 25
 }
 
 variable "ebs_delete_on_termination" {
@@ -83,6 +83,13 @@ variable "custom_shell_commands" {
   default     = []
 }
 
+variable "runner_username" {
+  description = "Name of the default user account"
+  type        = string
+  default     = "runner"
+}
+
+
 variable "temporary_security_group_source_public_ip" {
   description = "When enabled, use public IP of the host (obtained from https://checkip.amazonaws.com) as CIDR block to be authorized access to the instance, when packer is creating a temporary security group. Note: If you specify `security_group_id` then this input is ignored."
   type        = bool
@@ -99,6 +106,12 @@ data "http" github_runner_release_json {
 
 locals {
   runner_version = coalesce(var.runner_version, trimprefix(jsondecode(data.http.github_runner_release_json.body).tag_name, "v"))
+  user_data      = <<-EOT
+  #cloud-config
+  system_info:
+    default_user:
+        name: ${var.runner_username}
+  EOT
 }
 
 source "amazon-ebs" "githubrunner" {
@@ -120,7 +133,7 @@ source "amazon-ebs" "githubrunner" {
     most_recent = true
     owners      = ["099720109477"]
   }
-  ssh_username = "ubuntu"
+  ssh_username = var.runner_username
   tags = merge(
     var.global_tags,
     var.ami_tags,
@@ -140,6 +153,8 @@ source "amazon-ebs" "githubrunner" {
     volume_type           = "gp3"
     delete_on_termination = "${var.ebs_delete_on_termination}"
   }
+
+  user_data = local.user_data
 }
 
 build {
@@ -147,21 +162,46 @@ build {
   sources = [
     "source.amazon-ebs.githubrunner"
   ]
+  provisioner "file" {
+    content     = local.user_data
+    destination = "/tmp/defaults.cfg"
+  }
+  provisioner "shell" {
+    inline = [
+      "sudo mv /tmp/defaults.cfg /etc/cloud/cloud.cfg.d/defaults.cfg"
+    ]
+  }
   provisioner "shell" {
     environment_vars = [
       "DEBIAN_FRONTEND=noninteractive"
     ]
     inline = concat([
       "sudo cloud-init status --wait",
-      "sudo apt-get update",
+      "printf 'APT::Acquire::Retries \"10\";\n' | sudo tee /etc/apt/apt.conf.d/80retries > /dev/null",
+      "printf 'APT::Get::Assume-Yes \"true\";\n' | sudo tee /etc/apt/apt.conf.d/90forceyes > /dev/null",
+      "printf 'DPkg::Lock::Timeout \"30\";\n' | sudo tee /etc/apt/apt.conf.d/85timeout > /dev/null",
+      "echo 'DEBIAN_FRONTEND=noninteractive' | sudo tee /etc/environment > /dev/null",
+      "sudo systemctl stop apt-daily.timer",
+      "sudo systemctl disable apt-daily.timer",
+      "sudo systemctl disable apt-daily.service",
+      "sudo systemctl stop apt-daily-upgrade.timer",
+      "sudo systemctl disable apt-daily-upgrade.timer",
+      "sudo systemctl disable apt-daily-upgrade.service",
+      "printf 'APT::Get::Assume-Yes \"true\";\n' | sudo tee /etc/apt/apt.conf.d/90forceyes > /dev/null",
+      "sudo apt-get -y update",
       "sudo apt-get -y install ca-certificates curl gnupg lsb-release",
       "sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg",
       "echo deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
+      "sudo add-apt-repository --yes ppa:deadsnakes/ppa",
       "sudo apt-get -y update",
       "sudo apt-get -y install docker-ce docker-ce-cli containerd.io jq git unzip build-essential",
+      "sudo apt-get install -y --no-install-recommends python3.9-dev python3.9-venv python3.9-distutils",
+      # Grab libssl1.1.1 as this Ubuntu release comes with 3.0.0 which isn't always compatible.
+      "wget http://ports.ubuntu.com/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.22_arm64.deb -O /tmp/libssl.deb",
+      "sudo dpkg -i /tmp/libssl.deb",
       "sudo systemctl enable containerd.service",
       "sudo service docker start",
-      "sudo usermod -a -G docker ubuntu",
+      "sudo usermod -a -G docker ${var.runner_username}",
       "sudo curl -f https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/arm64/latest/amazon-cloudwatch-agent.deb -o amazon-cloudwatch-agent.deb",
       "sudo dpkg -i amazon-cloudwatch-agent.deb",
       "sudo systemctl restart amazon-cloudwatch-agent",
@@ -188,7 +228,7 @@ build {
     ]
     inline = [
       "sudo chmod +x /tmp/install-runner.sh",
-      "echo ubuntu | tee -a /tmp/install-user.txt",
+      "echo ${var.runner_username} | tee -a /tmp/install-user.txt",
       "sudo RUNNER_ARCHITECTURE=arm64 RUNNER_TARBALL_URL=$RUNNER_TARBALL_URL /tmp/install-runner.sh",
       "echo ImageOS=ubuntu22 | tee -a /opt/actions-runner/.env"
     ]
