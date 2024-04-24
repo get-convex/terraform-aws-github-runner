@@ -167,7 +167,7 @@ build {
   }
   provisioner "file" {
     destination = "/tmp/install-librocksdb.sh"
-    content = <<-EOF
+    content     = <<-EOF
 #!/bin/bash
 set -eou pipefail
 cd /tmp
