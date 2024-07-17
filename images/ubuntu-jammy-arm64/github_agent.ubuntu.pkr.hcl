@@ -171,6 +171,18 @@ build {
       "sudo mv /tmp/defaults.cfg /etc/cloud/cloud.cfg.d/defaults.cfg"
     ]
   }
+  provisioner "file" {
+    destination = "/tmp/install-librocksdb.sh"
+    content     = <<-EOF
+#!/bin/bash
+set -eou pipefail
+cd /tmp
+git clone --depth 1 --branch v8.10.0 https://github.com/facebook/rocksdb.git
+cd rocksdb
+make -j4 shared_lib
+cp -d librocksdb.so* /lib/
+EOF
+  }
   provisioner "shell" {
     environment_vars = [
       "DEBIAN_FRONTEND=noninteractive"
@@ -194,8 +206,11 @@ build {
       "echo deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
       "sudo add-apt-repository --yes ppa:deadsnakes/ppa",
       "sudo apt-get -y update",
-      "sudo apt-get -y install docker-ce docker-ce-cli containerd.io jq git unzip build-essential",
+      "sudo apt-get -y install docker-ce docker-ce-cli containerd.io jq git unzip build-essential python3-dev python3-pip python3-setuptools postgresql-client autoconf automake binutils bzip2 coreutils dnsutils gnupg2 haveged iproute2 imagemagick iputils-ping jq libc++-dev libcurl4 libgbm-dev libgconf-2-4 libgsl-dev libgtk-3-0 libmagic-dev libsqlite3-dev libtool libssl-dev lz4 net-tools netcat p7zip-full p7zip-rar parallel rsync shellcheck sqlite3 unzip xz-utils zip chromium-browser libsodium-dev pkg-config",
       "sudo apt-get install -y --no-install-recommends python3.9-dev python3.9-venv python3.9-distutils",
+      # Needed for vector database compilation
+      "sudo apt-get -y install --no-install-recommends libsnappy-dev libgflags-dev llvm-dev libclang-dev clang zlib1g-dev libbz2-dev liblz4-dev libzstd-dev",
+      "sudo bash /tmp/install-librocksdb.sh",
       # Grab libssl1.1.1 as this Ubuntu release comes with 3.0.0 which isn't always compatible.
       "wget http://ports.ubuntu.com/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.22_arm64.deb -O /tmp/libssl.deb",
       "sudo dpkg -i /tmp/libssl.deb",
@@ -245,7 +260,7 @@ build {
     inline = [
       "sudo mv /tmp/start-runner.sh /var/lib/cloud/scripts/per-boot/start-runner.sh",
       "sudo chmod +x /var/lib/cloud/scripts/per-boot/start-runner.sh",
-      "curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2023-11-01 --component rustfmt --component clippy"
+      "curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2024-04-27 --component rustfmt --component clippy"
     ]
   }
 

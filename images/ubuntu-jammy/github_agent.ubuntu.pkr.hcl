@@ -171,7 +171,7 @@ build {
 #!/bin/bash
 set -eou pipefail
 cd /tmp
-git clone --depth 1 --branch v8.9.1 https://github.com/facebook/rocksdb.git
+git clone --depth 1 --branch v8.10.0 https://github.com/facebook/rocksdb.git
 cd rocksdb
 make -j4 shared_lib
 cp -d librocksdb.so* /lib/
@@ -263,7 +263,7 @@ EOF
     inline = [
       "sudo mv /tmp/start-runner.sh /var/lib/cloud/scripts/per-boot/start-runner.sh",
       "sudo chmod +x /var/lib/cloud/scripts/per-boot/start-runner.sh",
-      "curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2023-11-01 --component rustfmt --component clippy"
+      "curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2024-04-27 --component rustfmt --component clippy"
     ]
   }
 
