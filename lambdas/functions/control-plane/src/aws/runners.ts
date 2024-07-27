@@ -94,6 +94,7 @@ function getRunnerInfo(runningInstances: DescribeInstancesResult) {
 }
 
 export async function terminateRunner(instanceId: string): Promise<void> {
+  logger.info(`Runner '${instanceId}' will be terminated.`);
   const ec2 = getTracedAWSV3Client(new EC2Client({ region: process.env.AWS_REGION }));
   await ec2.send(new TerminateInstancesCommand({ InstanceIds: [instanceId] }));
   logger.info(`Runner ${instanceId} has been terminated.`);
@@ -209,7 +210,8 @@ async function getAmiIdOverride(runnerParameters: Runners.RunnerInputParameters)
         'Please ensure that the given parameter exists on this region and contains a valid runner AMI ID',
       { error: e },
     );
-    throw e;
+    throw new Error(`Failed to lookup runner AMI ID from SSM parameter: ${runnerParameters.amiIdSsmParameterName},
+       ${e}`);
   }
 }
 

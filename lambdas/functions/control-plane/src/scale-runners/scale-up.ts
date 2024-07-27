@@ -227,7 +227,7 @@ export async function scaleUp(eventSource: string, payload: ActionRequestMessage
   const ssmTokenPath = process.env.SSM_TOKEN_PATH;
   const subnets = process.env.SUBNET_IDS.split(',');
   const instanceTypes = process.env.INSTANCE_TYPES.split(',');
-  const instanceTargetTargetCapacityType = process.env.INSTANCE_TARGET_CAPACITY_TYPE;
+  const instanceTargetCapacityType = process.env.INSTANCE_TARGET_CAPACITY_TYPE;
   const ephemeralEnabled = yn(process.env.ENABLE_EPHEMERAL_RUNNERS, { default: false });
   const enableJitConfig = yn(process.env.ENABLE_JIT_CONFIG, { default: ephemeralEnabled });
   const disableAutoUpdate = yn(process.env.DISABLE_RUNNER_AUTOUPDATE, { default: false });
@@ -308,7 +308,7 @@ export async function scaleUp(eventSource: string, payload: ActionRequestMessage
         {
           ec2instanceCriteria: {
             instanceTypes,
-            targetCapacityType: instanceTargetTargetCapacityType,
+            targetCapacityType: instanceTargetCapacityType,
             maxSpotPrice: instanceMaxSpotPrice,
             instanceAllocationStrategy: instanceAllocationStrategy,
           },
@@ -362,7 +362,9 @@ async function createRegistrationTokenConfig(
   });
 
   for (const instance of instances) {
-    await putParameter(`${githubRunnerConfig.ssmTokenPath}/${instance}`, runnerServiceConfig.join(' '), true);
+    await putParameter(`${githubRunnerConfig.ssmTokenPath}/${instance}`, runnerServiceConfig.join(' '), true, {
+      tags: [{ Key: 'InstanceId', Value: instance }],
+    });
     if (isDelay) {
       // Delay to prevent AWS ssm rate limits by being within the max throughput limit
       await delay(25);
@@ -405,7 +407,9 @@ async function createJitConfig(githubRunnerConfig: CreateGitHubRunnerConfig, ins
     logger.debug('Runner JIT config for ephemeral runner generated.', {
       instance: instance,
     });
-    await putParameter(`${githubRunnerConfig.ssmTokenPath}/${instance}`, runnerConfig.data.encoded_jit_config, true);
+    await putParameter(`${githubRunnerConfig.ssmTokenPath}/${instance}`, runnerConfig.data.encoded_jit_config, true, {
+      tags: [{ Key: 'InstanceId', Value: instance }],
+    });
     if (isDelay) {
       // Delay to prevent AWS ssm rate limits by being within the max throughput limit
       await delay(25);

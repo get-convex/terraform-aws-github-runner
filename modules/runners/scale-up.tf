@@ -11,7 +11,7 @@ resource "aws_lambda_function" "scale_up" {
   timeout                        = var.lambda_timeout_scale_up
   reserved_concurrent_executions = var.scale_up_reserved_concurrent_executions
   memory_size                    = var.lambda_scale_up_memory_size
-  tags                           = local.tags
+  tags                           = merge(local.tags, var.lambda_tags)
   architectures                  = [var.lambda_architecture]
   environment {
     variables = {
@@ -41,7 +41,7 @@ resource "aws_lambda_function" "scale_up" {
       RUNNER_GROUP_NAME                        = var.runner_group_name
       RUNNER_NAME_PREFIX                       = var.runner_name_prefix
       RUNNERS_MAXIMUM_COUNT                    = var.runners_maximum_count
-      PWOERTOOLS_SERVICE_NAME                  = "runners-scale-up"
+      POWERTOOLS_SERVICE_NAME                  = "runners-scale-up"
       SSM_TOKEN_PATH                           = local.token_path
       SSM_CONFIG_PATH                          = "${var.ssm_paths.root}/${var.ssm_paths.config}"
       SUBNET_IDS                               = join(",", var.subnet_ids)
