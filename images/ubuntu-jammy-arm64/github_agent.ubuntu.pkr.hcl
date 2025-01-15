@@ -42,6 +42,12 @@ variable "instance_type" {
   default     = "c6g.xlarge"
 }
 
+variable "iam_instance_profile" {
+  description = "IAM instance profile Packer will use for the builder. An empty string (default) means no profile will be assigned."
+  type        = string
+  default     = ""
+}
+
 variable "root_volume_size_gb" {
   type    = number
   default = 25
@@ -111,6 +117,7 @@ locals {
 source "amazon-ebs" "githubrunner" {
   ami_name                                  = "github-runner-ubuntu-jammy-arm64-${formatdate("YYYYMMDDhhmm", timestamp())}"
   instance_type                             = var.instance_type
+  iam_instance_profile                      = var.iam_instance_profile
   region                                    = var.region
   security_group_id                         = var.security_group_id
   subnet_id                                 = var.subnet_id
@@ -256,6 +263,7 @@ EOF
       "curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2024-04-27 --component rustfmt --component clippy"
     ]
   }
+
   post-processor "manifest" {
     output     = "manifest.json"
     strip_path = true
