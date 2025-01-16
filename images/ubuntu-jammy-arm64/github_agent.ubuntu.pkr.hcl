@@ -206,7 +206,7 @@ EOF
       "echo deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
       "sudo add-apt-repository --yes ppa:deadsnakes/ppa",
       "sudo apt-get -y update",
-      "sudo apt-get -y install docker-ce docker-ce-cli containerd.io jq git unzip build-essential python3-dev python3-pip python3-setuptools postgresql-client autoconf automake binutils bzip2 coreutils dnsutils gnupg2 haveged iproute2 imagemagick iputils-ping jq libc++-dev libcurl4 libgbm-dev libgconf-2-4 libgsl-dev libgtk-3-0 libmagic-dev libsqlite3-dev libtool libssl-dev lz4 net-tools netcat p7zip-full p7zip-rar parallel rsync shellcheck sqlite3 unzip xz-utils zip chromium-browser libsodium-dev pkg-config",
+      "sudo apt-get -y install docker-ce docker-ce-cli containerd.io jq git unzip build-essential cmake python3-dev python3-pip python3-setuptools postgresql-client autoconf automake binutils bzip2 coreutils dnsutils gnupg2 haveged iproute2 imagemagick iputils-ping jq libc++-dev libcurl4 libgbm-dev libgconf-2-4 libgsl-dev libgtk-3-0 libmagic-dev libsqlite3-dev libtool libssl-dev lz4 net-tools netcat p7zip-full p7zip-rar parallel rsync shellcheck sqlite3 unzip xz-utils zip chromium-browser libsodium-dev pkg-config",
       "sudo apt-get install -y --no-install-recommends python3.9-dev python3.9-venv python3.9-distutils",
       # Needed for vector database compilation
       "sudo apt-get -y install --no-install-recommends libsnappy-dev libgflags-dev llvm-dev libclang-dev clang zlib1g-dev libbz2-dev liblz4-dev libzstd-dev",
