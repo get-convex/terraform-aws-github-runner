@@ -217,7 +217,7 @@ EOF
       "sudo dpkg -i /tmp/libssl.deb",
       "sudo systemctl enable containerd.service",
       "echo '{\"registry-mirrors\": [\"https://mirror.gcr.io/\"]}' | sudo tee /etc/docker/daemon.json",
-      "sudo service docker start",
+      "sudo service docker restart",
       "sudo docker info | grep 'Registry Mirrors:' -A 1 | grep -q 'https://mirror.gcr.io/' || (echo 'Mirror not found in docker info' && exit 1)",
       "sudo usermod -a -G docker ${var.runner_username}",
       "sudo docker pull postgres:13",
