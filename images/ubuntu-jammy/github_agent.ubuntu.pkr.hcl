@@ -265,7 +265,7 @@ EOF
     inline = [
       "sudo mv /tmp/start-runner.sh /var/lib/cloud/scripts/per-boot/start-runner.sh",
       "sudo chmod +x /var/lib/cloud/scripts/per-boot/start-runner.sh",
-      "curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2024-12-16 --component rustfmt --component clippy"
+      "curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2025-06-28 --component rustfmt --component clippy"
     ]
   }
 
