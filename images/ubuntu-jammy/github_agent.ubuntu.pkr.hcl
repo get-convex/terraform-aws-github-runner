@@ -178,7 +178,7 @@ set -eou pipefail
 cd /tmp
 git clone --depth 1 --branch v8.10.0 https://github.com/facebook/rocksdb.git
 cd rocksdb
-make -j4 shared_lib
+make -j shared_lib
 cp -d librocksdb.so* /lib/
 EOF
   }
