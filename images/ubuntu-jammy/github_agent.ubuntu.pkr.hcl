@@ -143,7 +143,6 @@ source "amazon-ebs" "githubrunner" {
     var.ami_tags,
     {
       OS_Version    = "ubuntu-jammy"
-      Release       = "Latest"
       Base_AMI_Name = "{{ .SourceAMIName }}"
   })
   snapshot_tags = merge(
