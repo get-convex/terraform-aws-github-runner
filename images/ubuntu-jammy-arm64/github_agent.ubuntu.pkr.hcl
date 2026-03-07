@@ -105,7 +105,7 @@ data "http" github_runner_release_json {
 }
 
 data "http" convex_rust_toolchain {
-  url = "https://raw.githubusercontent.com/get-convex/convex-backend/main/rust-toolchain.toml"
+  url = "https://raw.githubusercontent.com/get-convex/convex-backend/main/rust-toolchain"
 }
 
 locals {
