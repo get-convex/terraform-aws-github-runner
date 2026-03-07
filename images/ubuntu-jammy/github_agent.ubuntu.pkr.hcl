@@ -103,8 +103,13 @@ data "http" github_runner_release_json {
   }
 }
 
+data "http" convex_rust_toolchain {
+  url = "https://raw.githubusercontent.com/get-convex/convex-backend/main/rust-toolchain.toml"
+}
+
 locals {
   runner_version = coalesce(var.runner_version, trimprefix(jsondecode(data.http.github_runner_release_json.body).tag_name, "v"))
+  rust_toolchain = regex("channel = \"([^\"]+)\"", data.http.convex_rust_toolchain.body)[0]
   user_data      = <<-EOT
   #cloud-config
   system_info:
@@ -212,9 +217,6 @@ EOF
       # Needed for vector database compilation
       "sudo apt-get -y install --no-install-recommends libsnappy-dev libgflags-dev llvm-dev libclang-dev clang zlib1g-dev libbz2-dev liblz4-dev libzstd-dev",
       "sudo bash /tmp/install-librocksdb.sh",
-      # Grab libssl1.1.1 as this Ubuntu release comes with 3.0.0 which isn't always compatible.
-      "wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb -O /tmp/libssl.deb",
-      "sudo dpkg -i /tmp/libssl.deb",
       "sudo systemctl enable containerd.service",
       "echo '{\"registry-mirrors\": [\"https://mirror.gcr.io/\"]}' | sudo tee /etc/docker/daemon.json",
       "sudo service docker restart",
@@ -265,7 +267,7 @@ EOF
     inline = [
       "sudo mv /tmp/start-runner.sh /var/lib/cloud/scripts/per-boot/start-runner.sh",
       "sudo chmod +x /var/lib/cloud/scripts/per-boot/start-runner.sh",
-      "curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2025-06-28 --component rustfmt --component clippy"
+      "curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain ${local.rust_toolchain} --component rustfmt --component clippy"
     ]
   }
 
