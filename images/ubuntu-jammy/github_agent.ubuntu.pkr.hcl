@@ -159,16 +159,8 @@ build {
     destination = "/tmp/defaults.cfg"
   }
   provisioner "file" {
+    source      = "../install-librocksdb.sh"
     destination = "/tmp/install-librocksdb.sh"
-    content = <<-EOF
-#!/bin/bash
-set -eou pipefail
-cd /tmp
-git clone --depth 1 --branch v8.9.1 https://github.com/facebook/rocksdb.git
-cd rocksdb
-make -j4 shared_lib
-cp -d librocksdb.so* /lib/
-EOF
   }
   provisioner "shell" {
     inline = [
