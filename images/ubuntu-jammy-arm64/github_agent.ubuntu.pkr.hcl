@@ -185,6 +185,14 @@ git clone --depth 1 --branch v8.10.0 https://github.com/facebook/rocksdb.git
 cd rocksdb
 make -j8 shared_lib
 cp -d librocksdb.so* /lib/
+# Emit pkg-config metadata so `pkg-config rocksdb` resolves; without a .pc,
+# consumers that gate on it (e.g. mise's ROCKSDB_COMPILE) rebuild rocksdb from
+# source. Version parsed from the built headers so it can't drift from the lib.
+maj=$(sed -n 's/#define ROCKSDB_MAJOR \([0-9]*\)/\1/p' include/rocksdb/version.h)
+min=$(sed -n 's/#define ROCKSDB_MINOR \([0-9]*\)/\1/p' include/rocksdb/version.h)
+pat=$(sed -n 's/#define ROCKSDB_PATCH \([0-9]*\)/\1/p' include/rocksdb/version.h)
+mkdir -p /usr/lib/pkgconfig
+printf 'Name: rocksdb\nDescription: RocksDB\nVersion: %s.%s.%s\nLibs: -L/usr/lib -lrocksdb\nCflags: -I/usr/include\n' "$maj" "$min" "$pat" > /usr/lib/pkgconfig/rocksdb.pc
 EOF
   }
   provisioner "shell" {
