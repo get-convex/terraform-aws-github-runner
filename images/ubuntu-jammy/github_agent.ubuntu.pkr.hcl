@@ -247,7 +247,9 @@ build {
     inline = [
       "sudo mv /tmp/start-runner.sh /var/lib/cloud/scripts/per-boot/start-runner.sh",
       "sudo chmod +x /var/lib/cloud/scripts/per-boot/start-runner.sh",
-      "curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2023-11-01 --component rustfmt --component clippy"
+      # Match convex's rust-toolchain so setup-rust's per-job toolchain install
+      # is a no-op on a fresh AMI (it still self-heals if this drifts).
+      "curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2026-06-28 --component rustfmt --component clippy"
     ]
   }
   post-processor "manifest" {
