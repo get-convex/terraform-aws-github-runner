@@ -280,17 +280,25 @@ EOF
   # normal channels: Chrome for Testing has no linux-arm64 releases, the
   # chromium-beta PPA (used on the x64 image) only publishes amd64, and apt's
   # chromium-browser on arm64 jammy is a snap stub. Playwright's CDN hosts a
-  # stock linux-arm64 chromium, fetchable with plain curl. Revision 1194 =
-  # Chromium 141, the build pinned by playwright 1.56.1 (to bump: read the
-  # chromium revision from browsers.json at the new playwright tag). The
-  # runner's .env export makes PUPPETEER_EXECUTABLE_PATH part of every job's
-  # environment (same mechanism as ImageOS above), which puppeteer.launch()
-  # reads directly. The apt list is playwright's install-deps set for
-  # chromium on ubuntu22.04 (nativeDeps.ts).
+  # stock linux-arm64 chromium, fetchable with plain curl. This whole block
+  # can be dropped if Chrome for Testing ever ships linux-arm64.
+  # Revision 1234 = Chromium 151, playwright main's pin as of 2026-07 (to
+  # bump: read the chromium revision from browsers.json at the new playwright
+  # tag). Keep the revision >= 1234: revision 1194 (Chromium 141) livelocks
+  # the NetworkService IO thread on loopback preconnects via the
+  # HappyEyeballsV3 stream pool, which playwright's non-official builds enable
+  # through chromium's field-trial testing config — the intermittent CI
+  # "Navigation timeout" wedge in convex's smoke tutorial tests (2/2 clean
+  # A/B dispatches on 1234 vs first-round wedges on 1194, 2026-07-21, convex
+  # branch gautam/debug-vite-wedge). The runner's .env export makes
+  # PUPPETEER_EXECUTABLE_PATH part of every job's environment (same mechanism
+  # as ImageOS above), which puppeteer.launch() reads directly. The apt list
+  # is playwright's install-deps set for chromium on ubuntu22.04
+  # (nativeDeps.ts).
   provisioner "shell" {
     inline = [
       "sudo apt-get -y install --no-install-recommends libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 libcairo2 libcups2 libdbus-1-3 libdrm2 libgbm1 libglib2.0-0 libnspr4 libnss3 libpango-1.0-0 libwayland-client0 libx11-6 libxcb1 libxcomposite1 libxdamage1 libxext6 libxfixes3 libxkbcommon0 libxrandr2 fonts-liberation",
-      "curl -fsSL -o /tmp/chromium.zip https://cdn.playwright.dev/builds/chromium/1194/chromium-linux-arm64.zip",
+      "curl -fsSL -o /tmp/chromium.zip https://cdn.playwright.dev/builds/chromium/1234/chromium-linux-arm64.zip",
       "sudo unzip -q /tmp/chromium.zip -d /opt/chromium && rm /tmp/chromium.zip",
       "sudo chmod -R a+rX /opt/chromium",
       "/opt/chromium/chrome-linux/chrome --version",
