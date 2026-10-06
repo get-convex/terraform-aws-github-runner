@@ -205,6 +205,11 @@ EOF
       "printf 'APT::Get::Assume-Yes \"true\";\n' | sudo tee /etc/apt/apt.conf.d/90forceyes > /dev/null",
       "printf 'DPkg::Lock::Timeout \"30\";\n' | sudo tee /etc/apt/apt.conf.d/85timeout > /dev/null",
       "echo 'DEBIAN_FRONTEND=noninteractive' | sudo tee /etc/environment > /dev/null",
+      # Noble's AppArmor denies unprivileged user namespaces to any binary
+      # without a profile allowing them, which breaks Chrome's sandbox
+      # (puppeteer: "No usable sandbox!") and anything else using userns.
+      # GitHub's hosted ubuntu-24.04 images lift the restriction the same way.
+      "echo 'kernel.apparmor_restrict_unprivileged_userns = 0' | sudo tee /etc/sysctl.d/99-unprivileged-userns.conf > /dev/null",
       "sudo systemctl stop apt-daily.timer",
       "sudo systemctl disable apt-daily.timer",
       "sudo systemctl disable apt-daily.service",
